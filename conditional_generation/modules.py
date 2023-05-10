@@ -1,7 +1,9 @@
 from __future__ import print_function
-import tensorflow as tf
+# import tensorflow as tf
+import tensorflow._api.v2.compat.v1 as tf
+tf.disable_v2_behavior()
 import numpy as np
-from tensorflow.python.ops import array_ops
+from tensorflow.python.ops import array_ops  # 分からん
 
 def gaussian_kld(recog_mu, recog_logvar, prior_mu, prior_logvar):
     kld = -0.5 * tf.reduce_sum(1 + (recog_logvar - prior_logvar)

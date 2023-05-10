@@ -1,12 +1,19 @@
 
 
-from ernie import SentenceClassifier, Models
-import pandas as pd
 import sys
 
-import tensorflow as tf
+import pandas as pd
+# import tensorflow as tf
+# import tensorflow.compat.v1 as tf
+import tensorflow._api.v2.compat.v1 as tf
+tf.disable_v2_behavior()
+from ernie import Models, SentenceClassifier
+
 import sys
-from tensorflow.python.platform import gfile
+
+# from tensorflow.python.platform import gfile
+from tensorflow._api.v2.compat.v1 import gfile
+
 
 def read_data(src_path):
     data_set = []

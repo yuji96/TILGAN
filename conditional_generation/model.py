@@ -1,8 +1,10 @@
-import tensorflow as tf
+# import tensorflow as tf
+import tensorflow._api.v2.compat.v1 as tf
+tf.disable_v2_behavior()
 import numpy as np
 from modules import *
-import math
 from tensorflow.python.layers import core as layers_core
+# layers_core = tf.keras.layers
 from data_utils import *
 import random
 
@@ -25,12 +27,12 @@ class TILGAN():
         self.flag = True
         self.mode = mode
         self.batch_size = hparams.batch_size
-        if self.mode == tf.contrib.learn.ModeKeys.TRAIN:
+        if self.mode == tf.estimator.ModeKeys.TRAIN:
             self.is_training = True
         else:
             self.is_training = False
 
-        if self.mode != tf.contrib.learn.ModeKeys.INFER:
+        if self.mode != tf.estimator.ModeKeys.PREDICT:
             self.input_ids = tf.placeholder(tf.int32, [None, None])
             self.input_scopes = tf.placeholder(tf.int32, [None, None])
             self.input_positions = tf.placeholder(tf.int32, [None, None])
@@ -160,7 +162,7 @@ class TILGAN():
             real_result = discriminator(post_encode)
             fake_result = discriminator(fake_sample)
             
-            if self.mode != tf.contrib.learn.ModeKeys.INFER:
+            if self.mode != tf.estimator.ModeKeys.PREDICT:
                 latent_sample = tf.tile(tf.expand_dims(post_encode, 1), [1, self.max_story_length, 1])
             else:
                 latent_sample = tf.tile(tf.expand_dims(fake_sample, 1), [1, self.max_story_length, 1])
@@ -172,7 +174,7 @@ class TILGAN():
             self.s = self.logits
             self.sample_id = tf.argmax(self.logits, axis=2)
 
-        if self.mode != tf.contrib.learn.ModeKeys.INFER:
+        if self.mode != tf.estimator.ModeKeys.PREDICT:
             with tf.variable_scope("loss") as scope:
                 self.global_step = tf.Variable(0, trainable=False)
                 crossent = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=self.targets, logits=self.logits)
@@ -187,7 +189,7 @@ class TILGAN():
                                     tf.nn.softplus(-real_result)))*0.02
                 self.gen_loss = (tf.reduce_mean(-(tf.clip_by_value(tf.exp(fake_result), 0.5, 2) * fake_result)))*0.02
                 self.gan_ae_loss = tf.reduce_mean(real_result)*0.02
-        if self.mode == tf.contrib.learn.ModeKeys.TRAIN:
+        if self.mode == tf.estimator.ModeKeys.TRAIN:
             with tf.variable_scope("train_op") as scope:
                 optimizer = tf.train.AdamOptimizer(0.0001, beta1=0.9, beta2=0.99, epsilon=1e-9)
                 gradients, v = zip(*optimizer.compute_gradients(self.loss))

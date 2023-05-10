@@ -6,7 +6,10 @@ import math
 import sys
 import time
 import numpy as np
-import tensorflow as tf
+# import tensorflow as tf
+import tensorflow._api.v2.compat.v1 as tf
+tf.disable_v2_behavior()
+from hparams import HParams
 import os
 import re
 
@@ -54,7 +57,7 @@ def add_arguments(parser):
 
 
 def create_hparams(flags):
-    return tf.contrib.training.HParams(
+    return HParams(
         # dir path
         data_dir=flags.data_dir,
         train_dir=flags.train_dir,
@@ -114,15 +117,15 @@ class InferModel(
 def create_model(hparams, model, length=22):
     train_graph = tf.Graph()
     with train_graph.as_default():
-        train_model = model(hparams, tf.contrib.learn.ModeKeys.TRAIN)
+        train_model = model(hparams, tf.estimator.ModeKeys.TRAIN)
 
     eval_graph = tf.Graph()
     with eval_graph.as_default():
-        eval_model = model(hparams, tf.contrib.learn.ModeKeys.EVAL)
+        eval_model = model(hparams, tf.estimator.ModeKeys.EVAL)
 
     infer_graph = tf.Graph()
     with infer_graph.as_default():
-        infer_model = model(hparams, tf.contrib.learn.ModeKeys.INFER)
+        infer_model = model(hparams, tf.estimator.ModeKeys.PREDICT)
 
     return TrainModel(graph=train_graph, model=train_model), EvalModel(graph=eval_graph, model=eval_model), InferModel(
         graph=infer_graph, model=infer_model)
@@ -166,7 +169,7 @@ def safe_exp(value):
     ans = float("inf")
   return ans
 
-def train(hparams):
+def train(hparams: HParams):
     embeddings = init_embedding(hparams)
     hparams.add_hparam(name="embeddings", value=embeddings)
     print("Vocab load over.")
